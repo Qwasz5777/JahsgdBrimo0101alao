@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 exports.handler = async (event, context) => {
-    // CORS handling for preflight requests
+    // Handle CORS preflight requests
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 204,
